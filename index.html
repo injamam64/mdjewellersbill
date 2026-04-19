@@ -220,9 +220,9 @@
 
             // Math
             const metal = weight * rate;
-            const taxable = metal + making;
+            const taxable = metal ;
             const gst = taxable * 0.015;
-            const rowTotal = taxable + (gst * 2);
+            const rowTotal = taxable + (gst * 2) + making ;
             const mGst = making * 0.05;
             const grandTotal = rowTotal + hallmark + mGst;
             const net = Math.round(grandTotal) - discount;
