@@ -1,104 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
-
-  <head>
-    <meta charset="UTF-8">
-    <title>Untitled</title>
-    <link rel="stylesheet" href="./style.css">
-
-  </head>
-    
-  <body>
-  <!DOCTYPE html>
-<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>M.D. Jewellers Invoice Generator</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>M.D. Jewellers Invoice</title>
+    <style>
+        /* Screen Only Styles */
+        body { font-family: 'Times New Roman', serif; margin: 0; padding: 0; background-color: #f4f7f6; }
+        #form-container { max-width: 650px; margin: 20px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .no-print fieldset { border: 1px solid #ddd; margin-bottom: 15px; padding: 10px; border-radius: 5px; }
+        .no-print input, .no-print select { width: 100%; padding: 8px; margin: 5px 0 12px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .form-row { display: flex; gap: 10px; }
+        .form-row div { flex: 1; }
+        .primary-btn { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
+
+        /* Print Styles */
+        .bill-page {
+            width: 210mm;
+            height: 297mm;
+            margin: auto;
+            background: white;
+            padding: 10mm 15mm;
+            box-sizing: border-box;
+            position: relative; /* Crucial for absolute footer */
+            border: 1px solid #eee;
+        }
+
+        .bill-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .jeweller-info { text-align: center; border: 2px solid #000; padding: 5px 40px; background-color: #fcece8 !important; }
+        .shop-name { margin: 0; font-size: 24pt; font-weight: 900; }
+
+        .info-table, .buyer-table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+        .buyer-table { margin-top: 10px; table-layout: fixed; }
+        .dotted { border-bottom: 1px dotted #000; display: inline-block; min-width: 130px; }
+
+        .items-table { width: 100%; border-collapse: collapse; margin-top: 15px; border: 1.5px solid #000; }
+        .items-table th, .items-table td { border: 1px solid #000; padding: 5px; text-align: center; font-size: 8.5pt; }
+        
+        /* This fills the middle of the bill */
+        .spacer-row td { height: 150px; border-top: none; }
+
+        .summary-container { display: flex; justify-content: space-between; margin-top: 15px; }
+        .amount-words-box { width: 55%; border: 1.5px solid #000; padding: 8px; background: #e0f2f1 !important; height: 80px; font-size: 9pt; }
+        .totals-box { width: 40%; text-align: right; font-size: 10.5pt; line-height: 1.5; }
+        .thick-line { border-bottom: 2px solid #000; margin: 4px 0; }
+
+        /* FOOTER PINNED TO BOTTOM */
+        .footer-pinned {
+            position: absolute;
+            bottom: 15mm; /* Distance from bottom of A4 */
+            left: 15mm;
+            right: 15mm;
+        }
+
+        .signature-container { display: flex; justify-content: space-between; margin-top: 0; font-weight: bold; font-size: 9pt; }
+        .thank-you { text-align: center; margin-top: 20px; font-weight: bold; font-size: 12pt; }
+
+        @media print {
+            .no-print { display: none !important; }
+            .bill-page { margin: 0; border: none; height: 100vh; width: 100vw; }
+            .jeweller-info, .amount-words-box { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
 </head>
 <body>
 
     <div id="form-container" class="no-print">
-        <header>
-            <h1>M.D. Jewellers Generator</h1>
-        </header>
-        
+        <h2 style="text-align:center">M.D. Jewellers Invoice</h2>
         <form id="invoice-form">
             <fieldset>
-                <legend>Buyer & Dates</legend>
-                <input type="text" id="buyerName" placeholder="Buyer Name" required>
-                <input type="text" id="buyerAddress" placeholder="Buyer Address" required>
-                <input type="text" id="buyerGSTIN" placeholder="Buyer GSTIN (Optional)">
+                <legend>Invoice & Dates</legend>
                 <div class="form-row">
-                    <input type="date" id="orderDate" title="Order Date">
-                    <input type="date" id="deliveryDate" title="Delivery Date">
+                    <div><label>Invoice Suffix:</label><input type="text" id="invoiceSuffix" placeholder="05"></div>
+                    <div><label>Order Date:</label><input type="date" id="orderDate"></div>
+                    <div><label>Delivery Date:</label><input type="date" id="deliveryDate"></div>
                 </div>
             </fieldset>
-
+            <fieldset>
+                <legend>Buyer Information</legend>
+                <input type="text" id="buyerName" placeholder="Buyer Name">
+                <input type="text" id="buyerAddress" placeholder="Address">
+                <input type="text" id="buyerGSTIN" placeholder="GSTIN (If any)">
+            </fieldset>
             <fieldset>
                 <legend>Item Details</legend>
-                <input type="text" id="itemDesc" placeholder="Description (e.g. Gents Ring)" required>
+                <input type="text" id="itemDesc" placeholder="Description of Goods">
                 <div class="form-row">
                     <input type="text" id="itemHUID" placeholder="HUID No">
                     <input type="text" id="itemPurity" value="22K916">
-                    <input type="number" id="itemWeight" step="0.001" placeholder="Weight (e.g. 2.000)" required>
+                    <input type="number" id="itemWeight" step="0.001" placeholder="Weight (gms)">
                 </div>
                 <div class="form-row">
-                    <input type="number" id="itemRate" placeholder="Rate per gm" required>
-                    <input type="number" id="itemMaking" placeholder="Making Charge" required>
+                    <input type="number" id="itemRate" placeholder="Rate per gm">
+                    <input type="number" id="itemMaking" placeholder="Making Charge">
                 </div>
             </fieldset>
-
             <fieldset>
-                <legend>Extras</legend>
+                <legend>Extras & Payment</legend>
                 <div class="form-row">
-                    <input type="number" id="hallmarkCharges" placeholder="Hallmark Charges" value="0">
-                    <input type="number" id="discount" placeholder="Discount" value="0">
+                    <input type="number" id="hallmarkCharges" placeholder="Hallmark Charges">
+                    <input type="number" id="discount" placeholder="Discount">
                 </div>
+                <label>Payment Method:</label>
+                <select id="paymentMethod">
+                    <option value="CASH">CASH</option>
+                    <option value="UPI">UPI</option>
+                    <option value="CASH & UPI BOTH">CASH & UPI BOTH</option>
+                </select>
             </fieldset>
-
-            <button type="submit" class="primary-btn">Generate & Print Bill</button>
+            <button type="submit" class="primary-btn">GENERATE BILL</button>
         </form>
     </div>
 
     <div id="invoice-bill" class="bill-page print-only">
         <div class="bill-header">
-            <div class="logo-placeholder">Gold Mark Logo</div>
+            <div style="font-size:7pt">LOGO</div>
             <div class="jeweller-info">
                 <h1 class="shop-name">M.D. JEWELLERS</h1>
                 <p class="tax-invoice">TAX INVOICE</p>
             </div>
-            <div class="logo-placeholder">BIS Logo</div>
+            <div style="font-size:7pt">BIS</div>
         </div>
 
-        <div class="details-section">
-            <table class="info-table">
-                <tr>
-                    <td width="60%"><strong>GSTIN :</strong> 19BDZPM4116 <span class="masked">[Masked]</span></td>
-                    <td width="40%" align="right"><strong>ORDER DATE :</strong> <span id="billOrderDate"></span></td>
-                </tr>
-                <tr>
-                    <td><strong>ADRESS :</strong> ILLAMBAZAR, DUBRAJPUR ROAD, NEAR SBI ATM</td>
-                    <td align="right"><strong>DELIVERY DATE :</strong> <span id="billDeliveryDate"></span></td>
-                </tr>
-                <tr>
-                    <td><strong>CONTACT NO / WHATSAPP :</strong> 8642067952</td>
-                    <td></td>
-                </tr>
-            </table>
-            
-            <p style="margin-top:15px;"><strong>INVOICE NO :</strong> MDJ/26/01</p>
-            <p><strong>PLACE OF SUPPPLY :</strong> WEST BENGAL</p>
+        <table class="info-table">
+            <tr>
+                <td width="60%"><strong>GSTIN :</strong> 19BDZPM41121N1ZS</td>
+                <td align="right"><strong>ORDER DATE :</strong> <span id="outOrderDate"></span></td>
+            </tr>
+            <tr>
+                <td><strong>ADRESS :</strong> ILLAMBAZAR, DUBRAJPUR ROAD</td>
+                <td align="right"><strong>DELIVERY DATE :</strong> <span id="outDeliveryDate"></span></td>
+            </tr>
+        </table>
+        
+        <p style="margin: 10px 0 0 0; font-size:10pt;"><strong>INVOICE NO :</strong> MDJ/26/<span id="outInvoice"></span></p>
+        <p style="margin: 0; font-size:10pt;"><strong>PLACE OF SUPPPLY :</strong> WEST BENGAL</p>
 
-            <table class="buyer-table">
-                <tr>
-                    <td><strong>BUYER NAME :</strong> <span id="billBuyerName" class="dotted"></span></td>
-                    <td><strong>BUYER ADRESS :</strong> <span id="billBuyerAddress" class="dotted"></span></td>
-                    <td><strong>BUYER GSTIN :</strong> <span id="billBuyerGSTIN" class="dotted"></span></td>
-                </tr>
-            </table>
-        </div>
+        <table class="buyer-table">
+            <tr>
+                <td><strong>BUYER NAME :</strong> <br><span id="outBuyerName" class="dotted"></span></td>
+                <td><strong>BUYER ADRESS :</strong> <br><span id="outBuyerAddress" class="dotted"></span></td>
+                <td><strong>BUYER GSTIN :</strong> <br><span id="outBuyerGSTIN" class="dotted"></span></td>
+            </tr>
+        </table>
 
         <table class="items-table">
             <thead>
@@ -110,25 +154,25 @@
                     <th>WEIGHT</th>
                     <th>CGST (1.5%)</th>
                     <th>SGST (1.5%)</th>
-                    <th>MAKING CHARGE</th>
+                    <th>MAKING</th>
                     <th>RATE</th>
-                    <th>METAL VALUE</th>
-                    <th>TOTAL AMOUNT</th>
+                    <th>METAL VAL</th>
+                    <th>TOTAL</th>
                 </tr>
             </thead>
             <tbody>
-                <tr class="item-row">
+                <tr>
                     <td>1.</td>
-                    <td id="billItemDesc"></td>
-                    <td id="billItemHUID"></td>
-                    <td id="billItemPurity"></td>
-                    <td id="billItemWeight"></td>
-                    <td id="billItemCGST"></td>
-                    <td id="billItemSGST"></td>
-                    <td id="billItemMaking"></td>
-                    <td id="billItemRate"></td>
-                    <td id="billItemMetalValue"></td>
-                    <td id="billItemTotalAmount"></td>
+                    <td id="outDesc"></td>
+                    <td id="outHUID"></td>
+                    <td id="outPurity"></td>
+                    <td id="outWeight"></td>
+                    <td id="outCGST"></td>
+                    <td id="outSGST"></td>
+                    <td id="outMaking"></td>
+                    <td id="outRate"></td>
+                    <td id="outMetal"></td>
+                    <td id="outTotal"></td>
                 </tr>
                 <tr class="spacer-row"><td colspan="11"></td></tr>
             </tbody>
@@ -136,36 +180,97 @@
 
         <div class="summary-container">
             <div class="amount-words-box">
-                <p><strong>AMOUNT IN WORDS :</strong></p>
-                <div id="billAmountWords" class="words-content"></div>
+                <strong>AMOUNT IN WORDS :</strong>
+                <div id="outWords" style="margin-top:5px; text-transform: uppercase;"></div>
             </div>
             <div class="totals-box">
-                <p>TOTAL : ₹ <span id="billSummaryTotal"></span></p>
-                <p>HALLMARK CHARGES : ₹ <span id="billSummaryHallmark"></span></p>
-                <p>MAKING CHARGE GST(5%) : ₹ <span id="billSummaryMakingGST"></span></p>
-                <p>ROUND OFF : <span id="billSummaryRoundOff"></span></p>
+                <p>TOTAL : ₹ <span id="sumTotal"></span></p>
+                <p>HALLMARK : ₹ <span id="sumHallmark"></span></p>
+                <p>MAKING GST(5%) : ₹ <span id="sumMakingGST"></span></p>
+                <p>ROUND OFF : <span id="sumRound"></span></p>
                 <div class="thick-line"></div>
-                <p><strong>TOTAL AMOUNT : ₹ <span id="billSummaryFinalTotal"></span></strong></p>
+                <p><strong>TOTAL AMOUNT : ₹ <span id="sumGrand"></span></strong></p>
                 <div class="thick-line"></div>
-                <p>DISCOUNT : ₹ <span id="billSummaryDiscount"></span></p>
-                <p><strong>NET RECEIVABLE AMT : ₹ <span id="billSummaryNetAmt"></span></strong></p>
-                <p>PAID BY CASH/UPI : ___________</p>
+                <p>DISCOUNT : ₹ <span id="sumDisc"></span></p>
+                <p><strong>NET RECEIVABLE : ₹ <span id="sumNet"></span></strong></p>
+                <p><strong>PAID BY : </strong> <span id="outPayment" style="text-decoration: underline"></span></p>
             </div>
         </div>
 
-        <div class="signature-container">
-            <div class="sig-box">____________________<br>CUSTOMER SIGNATURE</div>
-            <div class="sig-box">____________________<br>AUTHORIZED SIGN WITH SEAL</div>
+        <div class="footer-pinned">
+            <div class="signature-container">
+                <div class="sig-box">__________________________<br>CUSTOMER SIGNATURE</div>
+                <div class="sig-box">__________________________<br>AUTHORIZED SIGN WITH SEAL</div>
+            </div>
+            <div class="thank-you">THANK YOU / VISIT AGAIN</div>
         </div>
-
-        <div class="thank-you">THANK YOU <br> VISIT AGAIN</div>
     </div>
 
-    <script src="script.js"></script>
-</body>
-</html>
-    <script  src="./script.js"></script>
+    <script>
+        document.getElementById('invoice-form').addEventListener('submit', function(e) {
+            e.preventDefault();
 
-  </body>
-  
+            // Inputs
+            const suffix = document.getElementById('invoiceSuffix').value;
+            const weight = parseFloat(document.getElementById('itemWeight').value);
+            const rate = parseFloat(document.getElementById('itemRate').value);
+            const making = parseFloat(document.getElementById('itemMaking').value);
+            const hallmark = parseFloat(document.getElementById('hallmarkCharges').value) || 0;
+            const discount = parseFloat(document.getElementById('discount').value) || 0;
+
+            // Math
+            const metal = weight * rate;
+            const taxable = metal + making;
+            const gst = taxable * 0.015;
+            const rowTotal = taxable + (gst * 2);
+            const mGst = making * 0.05;
+            const grandTotal = rowTotal + hallmark + mGst;
+            const net = Math.round(grandTotal) - discount;
+
+            // Fill
+            document.getElementById('outInvoice').textContent = suffix;
+            document.getElementById('outBuyerName').textContent = document.getElementById('buyerName').value;
+            document.getElementById('outBuyerAddress').textContent = document.getElementById('buyerAddress').value;
+            document.getElementById('outBuyerGSTIN').textContent = document.getElementById('buyerGSTIN').value || "N/A";
+            document.getElementById('outOrderDate').textContent = document.getElementById('orderDate').value;
+            document.getElementById('outDeliveryDate').textContent = document.getElementById('deliveryDate').value;
+            
+            document.getElementById('outDesc').textContent = document.getElementById('itemDesc').value;
+            document.getElementById('outHUID').textContent = document.getElementById('itemHUID').value || "N/A";
+            document.getElementById('outPurity').textContent = document.getElementById('itemPurity').value;
+            document.getElementById('outWeight').textContent = weight.toFixed(3);
+            document.getElementById('outRate').textContent = rate.toFixed(2);
+            document.getElementById('outMaking').textContent = making.toFixed(2);
+            document.getElementById('outCGST').textContent = gst.toFixed(2);
+            document.getElementById('outSGST').textContent = gst.toFixed(2);
+            document.getElementById('outMetal').textContent = metal.toFixed(2);
+            document.getElementById('outTotal').textContent = rowTotal.toFixed(2);
+
+            document.getElementById('sumTotal').textContent = rowTotal.toFixed(2);
+            document.getElementById('sumHallmark').textContent = hallmark.toFixed(2);
+            document.getElementById('sumMakingGST').textContent = mGst.toFixed(2);
+            document.getElementById('sumRound').textContent = (Math.round(grandTotal) - grandTotal).toFixed(2);
+            document.getElementById('sumGrand').textContent = Math.round(grandTotal).toFixed(2);
+            document.getElementById('sumDisc').textContent = discount.toFixed(2);
+            document.getElementById('sumNet').textContent = net.toFixed(2);
+            document.getElementById('outPayment').textContent = document.getElementById('paymentMethod').value;
+            document.getElementById('outWords').textContent = numberToWords(net) + " ONLY";
+
+            setTimeout(() => { window.print(); }, 200);
+        });
+
+        function numberToWords(n) {
+            const w = ["", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "ELEVEN", "TWELVE", "THIRTEEN", "FOURTEEN", "FIFTEEN", "SIXTEEN", "SEVENTEEN", "EIGHTEEN", "NINETEEN"];
+            const t = ["", "", "TWENTY", "THIRTY", "FORTY", "FIFTY", "SIXTY", "SEVENTY", "EIGHTY", "NINETY"];
+            const convert = (num) => {
+                if (num < 20) return w[num];
+                if (num < 100) return t[Math.floor(num/10)] + (num%10 !== 0 ? " " + w[num%10] : "");
+                if (num < 1000) return w[Math.floor(num/100)] + " HUNDRED" + (num%100 !== 0 ? " AND " + convert(num%100) : "");
+                if (num < 100000) return convert(Math.floor(num/1000)) + " THOUSAND" + (num%1000 !== 0 ? " " + convert(num%1000) : "");
+                return convert(Math.floor(num/100000)) + " LAKH" + (num%100000 !== 0 ? " " + convert(num%100000) : "");
+            };
+            return n === 0 ? "ZERO" : convert(n);
+        }
+    </script>
+</body>
 </html>
