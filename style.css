@@ -1,46 +1,61 @@
-body { font-family: 'Times New Roman', serif; margin: 0; padding: 0; }
+<style>
+    /* ... Keep your existing Form/Screen CSS ... */
 
-#form-container { max-width: 600px; margin: 20px auto; padding: 20px; background: #f4f4f4; border-radius: 8px; }
-input, select { display: block; width: 100%; padding: 8px; margin: 10px 0; box-sizing: border-box; }
-.form-row { display: flex; gap: 10px; }
-.primary-btn { width: 100%; padding: 15px; background: #333; color: #fff; border: none; cursor: pointer; font-weight: bold; }
+    /* PRINT SECTION - THE FIX */
+    @media print {
+        .no-print { display: none !important; }
 
-/* Bill Design */
-.bill-page { 
-    width: 210mm; padding: 15mm; margin: auto; border: 1px solid #eee; 
-    box-sizing: border-box; position: relative; overflow: hidden;
-}
+        html, body {
+            height: 100%;
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact;
+        }
 
-.bill-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.jeweller-info { text-align: center; border: 1.5px solid #000; padding: 5px 30px; background-color: #fff9f9; }
-.shop-name { margin: 0; font-size: 24pt; letter-spacing: 1px; }
+        .bill-page {
+            width: 210mm;
+            height: 296mm; /* Slightly less than 297 to avoid overflow */
+            margin: 0 auto;
+            padding: 10mm;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column; /* This keeps items in order */
+            page-break-after: avoid;
+            page-break-before: avoid;
+        }
 
-.info-table, .buyer-table { width: 100%; border-collapse: collapse; font-size: 10pt; }
-.buyer-table { margin-top: 15px; table-layout: fixed; }
-.buyer-table td { padding: 5px 2px; }
-.dotted { border-bottom: 1px dotted #000; display: inline-block; min-width: 120px; }
+        /* The table will take all available middle space */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            flex-grow: 1; /* This pushes the footer down naturally */
+        }
 
-.items-table { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #000; }
-.items-table th, .items-table td { border-left: 1px solid #000; border-right: 1px solid #000; padding: 8px 4px; text-align: center; font-size: 9pt; }
-.items-table th { border-bottom: 1px solid #000; background: #fff; }
+        /* Reduce this height for mobile compatibility */
+        .spacer-row td { 
+            height: 100px; /* Reduced to ensure it fits on mobile screens */
+            border-top: none; 
+        }
 
-/* Correction: No row lines in body, only one at bottom of data */
-.item-row td { border-bottom: 1px solid #000; }
-.spacer-row td { height: 150px; border-bottom: none; }
+        /* Ensure the footer never jumps to a new page */
+        .footer-pinned {
+            position: relative;
+            margin-top: auto; /* Pushes to bottom of the flex container */
+            padding-top: 10px;
+            page-break-inside: avoid;
+        }
 
-.summary-container { display: flex; justify-content: space-between; margin-top: 10px; }
-.amount-words-box { width: 55%; border: 1px solid #000; padding: 10px; background: #f0f8ff; height: 80px; }
-.totals-box { width: 40%; text-align: right; font-size: 10pt; line-height: 1.6; }
-.thick-line { border-bottom: 2px solid #000; margin: 5px 0; }
+        .signature-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-size: 9pt;
+        }
 
-.signature-container { display: flex; justify-content: space-between; margin-top: 60px; font-weight: bold; font-size: 9pt; }
-.thank-you { text-align: center; margin-top: 40px; font-weight: bold; }
-
-@media print {
-    .no-print { display: none; }
-    .bill-page { 
-        border: none; padding: 10mm; 
-        transform: scale(0.98); transform-origin: top center;
+        .thank-you {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+        }
     }
-    .amount-words-box { -webkit-print-color-adjust: exact; background-color: #f0f8ff !important; }
-}
+</style>
