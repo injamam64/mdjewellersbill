@@ -6,7 +6,7 @@
         .no-print { display: none !important; }
 
         html, body {
-            height: 100%;
+            height: auto; /* Changed from 100% to prevent forcing page length */
             margin: 0 !important;
             padding: 0 !important;
             -webkit-print-color-adjust: exact;
@@ -14,33 +14,29 @@
 
         .bill-page {
             width: 210mm;
-            height: 296mm; /* Slightly less than 297 to avoid overflow */
+            /* Remove fixed height to let content sit naturally */
             margin: 0 auto;
             padding: 10mm;
             box-sizing: border-box;
-            display: flex;
-            flex-direction: column; /* This keeps items in order */
-            page-break-after: avoid;
-            page-break-before: avoid;
+            display: block; /* Changed from flex to stop auto-spreading */
         }
 
-        /* The table will take all available middle space */
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            flex-grow: 1; /* This pushes the footer down naturally */
+            margin-bottom: 10px;
         }
 
-        /* Reduce this height for mobile compatibility */
+        /* This controls the gap inside the table */
         .spacer-row td { 
-            height: 100px; /* Reduced to ensure it fits on mobile screens */
+            height: 40px; /* Reduced to bring everything closer together */
             border-top: none; 
         }
 
-        /* Ensure the footer never jumps to a new page */
+        /* This moves the signatures up closer to the bill */
         .footer-pinned {
             position: relative;
-            margin-top: auto; /* Pushes to bottom of the flex container */
+            margin-top: 20px; /* Small fixed margin instead of 'auto' */
             padding-top: 10px;
             page-break-inside: avoid;
         }
@@ -48,13 +44,13 @@
         .signature-container {
             display: flex;
             justify-content: space-between;
-            margin-top: 20px;
+            margin-top: 15px;
             font-size: 9pt;
         }
 
         .thank-you {
             text-align: center;
-            margin-top: 15px;
+            margin-top: 10px;
             font-weight: bold;
         }
     }
