@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Untitled</title>
+    <link rel="stylesheet" href="./style.css">
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M.D. Jewellers Invoice Generator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div id="form-container" class="no-print">
+        <header>
+            <h1>M.D. Jewellers Generator</h1>
+        </header>
+        
+        <form id="invoice-form">
+            <fieldset>
+                <legend>Buyer & Dates</legend>
+                <input type="text" id="buyerName" placeholder="Buyer Name" required>
+                <input type="text" id="buyerAddress" placeholder="Buyer Address" required>
+                <input type="text" id="buyerGSTIN" placeholder="Buyer GSTIN (Optional)">
+                <div class="form-row">
+                    <input type="date" id="orderDate" title="Order Date">
+                    <input type="date" id="deliveryDate" title="Delivery Date">
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Item Details</legend>
+                <input type="text" id="itemDesc" placeholder="Description (e.g. Gents Ring)" required>
+                <div class="form-row">
+                    <input type="text" id="itemHUID" placeholder="HUID No">
+                    <input type="text" id="itemPurity" value="22K916">
+                    <input type="number" id="itemWeight" step="0.001" placeholder="Weight (e.g. 2.000)" required>
+                </div>
+                <div class="form-row">
+                    <input type="number" id="itemRate" placeholder="Rate per gm" required>
+                    <input type="number" id="itemMaking" placeholder="Making Charge" required>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Extras</legend>
+                <div class="form-row">
+                    <input type="number" id="hallmarkCharges" placeholder="Hallmark Charges" value="0">
+                    <input type="number" id="discount" placeholder="Discount" value="0">
+                </div>
+            </fieldset>
+
+            <button type="submit" class="primary-btn">Generate & Print Bill</button>
+        </form>
+    </div>
+
+    <div id="invoice-bill" class="bill-page print-only">
+        <div class="bill-header">
+            <div class="logo-placeholder">Gold Mark Logo</div>
+            <div class="jeweller-info">
+                <h1 class="shop-name">M.D. JEWELLERS</h1>
+                <p class="tax-invoice">TAX INVOICE</p>
+            </div>
+            <div class="logo-placeholder">BIS Logo</div>
+        </div>
+
+        <div class="details-section">
+            <table class="info-table">
+                <tr>
+                    <td width="60%"><strong>GSTIN :</strong> 19BDZPM4116 <span class="masked">[Masked]</span></td>
+                    <td width="40%" align="right"><strong>ORDER DATE :</strong> <span id="billOrderDate"></span></td>
+                </tr>
+                <tr>
+                    <td><strong>ADRESS :</strong> ILLAMBAZAR, DUBRAJPUR ROAD, NEAR SBI ATM</td>
+                    <td align="right"><strong>DELIVERY DATE :</strong> <span id="billDeliveryDate"></span></td>
+                </tr>
+                <tr>
+                    <td><strong>CONTACT NO / WHATSAPP :</strong> 8642067952</td>
+                    <td></td>
+                </tr>
+            </table>
+            
+            <p style="margin-top:15px;"><strong>INVOICE NO :</strong> MDJ/26/01</p>
+            <p><strong>PLACE OF SUPPPLY :</strong> WEST BENGAL</p>
+
+            <table class="buyer-table">
+                <tr>
+                    <td><strong>BUYER NAME :</strong> <span id="billBuyerName" class="dotted"></span></td>
+                    <td><strong>BUYER ADRESS :</strong> <span id="billBuyerAddress" class="dotted"></span></td>
+                    <td><strong>BUYER GSTIN :</strong> <span id="billBuyerGSTIN" class="dotted"></span></td>
+                </tr>
+            </table>
+        </div>
+
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>SL NO</th>
+                    <th>DESCRIPTION OF GOODS</th>
+                    <th>HUID NO</th>
+                    <th>PURITY</th>
+                    <th>WEIGHT</th>
+                    <th>CGST (1.5%)</th>
+                    <th>SGST (1.5%)</th>
+                    <th>MAKING CHARGE</th>
+                    <th>RATE</th>
+                    <th>METAL VALUE</th>
+                    <th>TOTAL AMOUNT</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="item-row">
+                    <td>1.</td>
+                    <td id="billItemDesc"></td>
+                    <td id="billItemHUID"></td>
+                    <td id="billItemPurity"></td>
+                    <td id="billItemWeight"></td>
+                    <td id="billItemCGST"></td>
+                    <td id="billItemSGST"></td>
+                    <td id="billItemMaking"></td>
+                    <td id="billItemRate"></td>
+                    <td id="billItemMetalValue"></td>
+                    <td id="billItemTotalAmount"></td>
+                </tr>
+                <tr class="spacer-row"><td colspan="11"></td></tr>
+            </tbody>
+        </table>
+
+        <div class="summary-container">
+            <div class="amount-words-box">
+                <p><strong>AMOUNT IN WORDS :</strong></p>
+                <div id="billAmountWords" class="words-content"></div>
+            </div>
+            <div class="totals-box">
+                <p>TOTAL : ₹ <span id="billSummaryTotal"></span></p>
+                <p>HALLMARK CHARGES : ₹ <span id="billSummaryHallmark"></span></p>
+                <p>MAKING CHARGE GST(5%) : ₹ <span id="billSummaryMakingGST"></span></p>
+                <p>ROUND OFF : <span id="billSummaryRoundOff"></span></p>
+                <div class="thick-line"></div>
+                <p><strong>TOTAL AMOUNT : ₹ <span id="billSummaryFinalTotal"></span></strong></p>
+                <div class="thick-line"></div>
+                <p>DISCOUNT : ₹ <span id="billSummaryDiscount"></span></p>
+                <p><strong>NET RECEIVABLE AMT : ₹ <span id="billSummaryNetAmt"></span></strong></p>
+                <p>PAID BY CASH/UPI : ___________</p>
+            </div>
+        </div>
+
+        <div class="signature-container">
+            <div class="sig-box">____________________<br>CUSTOMER SIGNATURE</div>
+            <div class="sig-box">____________________<br>AUTHORIZED SIGN WITH SEAL</div>
+        </div>
+
+        <div class="thank-you">THANK YOU <br> VISIT AGAIN</div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+    <script  src="./script.js"></script>
+
+  </body>
+  
+</html>
