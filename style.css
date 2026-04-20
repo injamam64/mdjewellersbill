@@ -1,102 +1,120 @@
 <style>
-    /* ... Keep your existing Form/Screen CSS ... */
+    /* 1. SCREEN ONLY - Form Styling */
+    #form-container { 
+        max-width: 600px; 
+        margin: 20px auto; 
+        padding: 20px; 
+        background: #fff; 
+        border-radius: 8px; 
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        font-family: Arial, sans-serif;
+    }
+    
+    .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .form-row input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
 
-    /* PRINT SECTION - THE FIX */
-    @media print {
-        .no-print { display: none !important; }
-
-        html, body {
-            height: auto; /* Changed from 100% to prevent forcing page length */
-            margin: 0 !important;
-            padding: 0 !important;
-            -webkit-print-color-adjust: exact;
-        }
-
-        .bill-page {
-            width: 210mm;
-            /* Remove fixed height to let content sit naturally */
-            margin: 0 auto;
-            padding: 10mm;
-            box-sizing: border-box;
-            display: block; /* Changed from flex to stop auto-spreading */
-        }
-
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 10px;
-        }
-
-        /* This controls the gap inside the table */
-        .spacer-row td { 
-            height: 40px; /* Reduced to bring everything closer together */
-            border-top: none; 
-        }
-
-        /* This moves the signatures up closer to the bill */
-        .footer-pinned {
-            position: relative;
-            margin-top: 20px; /* Small fixed margin instead of 'auto' */
-            padding-top: 10px;
-            page-break-inside: avoid;
-        }
-
-        .signature-container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-            font-size: 9pt;
-        }
-
-        .thank-you {
-            text-align: center;
-            margin-top: 10px;
-            font-weight: bold;
-        }
-@media print, screen {
+    /* 2. SHARED HEADER STYLES (Screen & Print) */
     .header-table {
         width: 100%;
         border-collapse: collapse;
         margin-bottom: 10px;
     }
 
-    /* Keep logos small so they don't push content to page 2 */
     .header-logo {
-        height: 45px; 
+        height: 48px; /* Fixed height keeps both logos balanced */
         width: auto;
         display: block;
         margin: 0 auto;
     }
 
-    .header-logo-cell {
-        width: 15%; /* Allocates specific space for logos */
-        vertical-align: center;
-    }
-
-    .header-text-cell {
-        width: 70%;
-        text-align: center;
-        vertical-align: center;
-    }
+    .header-logo-cell { width: 15%; vertical-align: middle; }
+    .header-text-cell { width: 70%; text-align: center; vertical-align: middle; }
 
     .jeweller-info {
         border: 1.5px solid #000;
-        padding: 4px;
-        background-color: #fcece8 !important;
+        padding: 5px;
+        background-color: #fcece8 !important; /* The brand light-peach color */
         margin: 0 10px;
+        text-align: center;
     }
 
     .shop-name {
         margin: 0;
-        font-size: 18pt; /* Reduced slightly to ensure single-line fit */
+        font-size: 20pt;
         font-weight: 900;
+        line-height: 1.1;
     }
 
     .tax-invoice {
-        margin: 0;
+        margin: 2px 0 0 0;
         font-size: 9pt;
-        letter-spacing: 2px;
+        letter-spacing: 3px;
+        font-weight: bold;
     }
-}
+
+    /* 3. PRINT OPTIMIZATION (Fixes Page Break & Mobile Issues) */
+    @media print {
+        .no-print { display: none !important; }
+
+        html, body {
+            height: auto;
+            margin: 0 !important;
+            padding: 0 !important;
+            /* Ensures background colors and logos actually print */
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .bill-page {
+            width: 210mm;
+            margin: 0 auto;
+            padding: 10mm;
+            box-sizing: border-box;
+            display: block; /* Removed flex to prevent auto-spacing issues */
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .items-table th, .items-table td {
+            border: 1px solid #000;
+            padding: 6px 4px;
+            font-size: 8.5pt;
+            text-align: center;
+        }
+
+        /* Adjust this height to control the white space in your table */
+        .spacer-row td { 
+            height: 40px; 
+            border-top: none; 
+        }
+
+        /* This area pulls the signatures up toward the total */
+        .footer-section {
+            position: relative;
+            margin-top: 15px; 
+            padding-top: 5px;
+            page-break-inside: avoid;
+        }
+
+        .signature-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            font-size: 9pt;
+            font-weight: bold;
+        }
+
+        .thank-you {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 11pt;
+            border-top: 1px solid #eee;
+            padding-top: 5px;
+        }
     }
 </style>
