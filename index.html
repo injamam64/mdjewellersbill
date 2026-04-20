@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>M.D. Jewellers Invoice</title>
     <style>
-        /* Screen Only Styles */
+        /* --- SCREEN ONLY STYLES --- */
         body { font-family: 'Times New Roman', serif; margin: 0; padding: 0; background-color: #f4f7f6; }
         #form-container { max-width: 650px; margin: 20px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .no-print fieldset { border: 1px solid #ddd; margin-bottom: 15px; padding: 10px; border-radius: 5px; }
@@ -14,51 +14,34 @@
         .form-row div { flex: 1; }
         .primary-btn { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
 
-        /* Print Styles */
-        .bill-page {
-            width: 210mm;
-            height: 297mm;
-            margin: auto;
-            background: white;
-            padding: 10mm 15mm;
-            box-sizing: border-box;
-            position: relative; /* Crucial for absolute footer */
-            border: 1px solid #eee;
-        }
+        /* --- SHARED HEADER STYLES (Screen & Print) --- */
+        .header-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        .header-logo { height: 50px; width: auto; display: block; margin: 0 auto; }
+        .header-logo-cell { width: 15%; vertical-align: middle; }
+        .header-text-cell { width: 70%; text-align: center; vertical-align: middle; }
+        .jeweller-info { border: 2.2px solid #000; padding: 5px; background-color: #fcece8 !important; margin: 0 10px; text-align: center; }
+        .shop-name { margin: 0; font-size: 22pt; font-weight: 900; line-height: 1.1; }
+        .tax-invoice { margin: 2px 0 0 0; font-size: 9pt; letter-spacing: 3px; font-weight: bold; }
 
-        .bill-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .jeweller-info { text-align: center; border: 2px solid #000; padding: 5px 40px; background-color: #fcece8 !important; }
-        .shop-name { margin: 0; font-size: 24pt; font-weight: 900; }
-
+        /* --- PRINT STYLES --- */
+        .bill-page { width: 210mm; margin: auto; background: white; padding: 10mm 15mm; box-sizing: border-box; position: relative; border: 1px solid #eee; }
         .info-table, .buyer-table { width: 100%; border-collapse: collapse; font-size: 10pt; }
         .buyer-table { margin-top: 10px; table-layout: fixed; }
         .dotted { border-bottom: 1px dotted #000; display: inline-block; min-width: 130px; }
-
         .items-table { width: 100%; border-collapse: collapse; margin-top: 15px; border: 1.5px solid #000; }
         .items-table th, .items-table td { border: 1px solid #000; padding: 5px; text-align: center; font-size: 8.5pt; }
-        
-        /* This fills the middle of the bill */
-        .spacer-row td { height: 150px; border-top: none; }
-
+        .spacer-row td { height: 100px; border-top: none; } /* Reduced from 150px to save space */
         .summary-container { display: flex; justify-content: space-between; margin-top: 15px; }
-        .amount-words-box { width: 55%; border: 1.5px solid #000; padding: 8px; background: #e0f2f1 !important; height: 80px; font-size: 9pt; }
-        .totals-box { width: 40%; text-align: right; font-size: 10.5pt; line-height: 1.5; }
+        .amount-words-box { width: 55%; border: 1.5px solid #000; padding: 8px; background: #e0f2f1 !important; min-height: 80px; font-size: 9pt; }
+        .totals-box { width: 40%; text-align: right; font-size: 10pt; line-height: 1.4; }
         .thick-line { border-bottom: 2px solid #000; margin: 4px 0; }
-
-        /* FOOTER PINNED TO BOTTOM */
-        .footer-pinned {
-            position: absolute;
-            bottom: 15mm; /* Distance from bottom of A4 */
-            left: 15mm;
-            right: 15mm;
-        }
-
-        .signature-container { display: flex; justify-content: space-between; margin-top: 0; font-weight: bold; font-size: 9pt; }
-        .thank-you { text-align: center; margin-top: 20px; font-weight: bold; font-size: 12pt; }
+        .signature-container { display: flex; justify-content: space-between; margin-top: 25px; font-weight: bold; font-size: 9pt; }
+        .thank-you-footer { text-align: center; margin-top: 20px; font-weight: bold; font-size: 11pt; }
 
         @media print {
             .no-print { display: none !important; }
-            .bill-page { margin: 0; border: none; height: 100vh; width: 100vw; }
+            .bill-page { margin: 0; border: none; width: 100%; height: auto; }
+            html, body { background-color: #fff; }
             .jeweller-info, .amount-words-box { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
     </style>
@@ -112,38 +95,38 @@
         </form>
     </div>
 
-<div class="bill-header">
-    <div class="logo-left">
-        <img src="md-logo.png" alt="MD Logo" class="header-img">
-    </div>
+    <div id="invoice-bill" class="bill-page">
+        <table class="header-table">
+            <tr>
+                <td class="header-logo-cell"><img src="md-logo.png" class="header-logo" alt="MD Logo"></td>
+                <td class="header-text-cell">
+                    <div class="jeweller-info">
+                        <h1 class="shop-name">M.D. JEWELLERS</h1>
+                        <p class="tax-invoice">TAX INVOICE</p>
+                    </div>
+                </td>
+                <td class="header-logo-cell"><img src="bis-logo.png" class="header-logo" alt="BIS Logo"></td>
+            </tr>
+        </table>
 
-    <div class="jeweller-info">
-        <h1 class="shop-name">M.D. JEWELLERS</h1>
-        <p class="tax-invoice">TAX INVOICE</p>
-    </div>
-
-    <div class="logo-right">
-        <img src="bis-logo.png" alt="BIS Logo" class="header-img">
-    </div>
-</div>
         <table class="info-table">
             <tr>
                 <td width="60%"><strong>GSTIN :</strong> 19BDZPM41121N1ZS</td>
                 <td align="right"><strong>ORDER DATE :</strong> <span id="outOrderDate"></span></td>
             </tr>
             <tr>
-                <td><strong>ADRESS :</strong> ILLAMBAZAR, DUBRAJPUR ROAD</td>
+                <td><strong>ADDRESS :</strong> ILLAMBAZAR, DUBRAJPUR ROAD</td>
                 <td align="right"><strong>DELIVERY DATE :</strong> <span id="outDeliveryDate"></span></td>
             </tr>
         </table>
         
         <p style="margin: 10px 0 0 0; font-size:10pt;"><strong>INVOICE NO :</strong> MDJ/26/<span id="outInvoice"></span></p>
-        <p style="margin: 0; font-size:10pt;"><strong>PLACE OF SUPPPLY :</strong> WEST BENGAL</p>
+        <p style="margin: 0; font-size:10pt;"><strong>PLACE OF SUPPLY :</strong> WEST BENGAL</p>
 
         <table class="buyer-table">
             <tr>
                 <td><strong>BUYER NAME :</strong> <br><span id="outBuyerName" class="dotted"></span></td>
-                <td><strong>BUYER ADRESS :</strong> <br><span id="outBuyerAddress" class="dotted"></span></td>
+                <td><strong>BUYER ADDRESS :</strong> <br><span id="outBuyerAddress" class="dotted"></span></td>
                 <td><strong>BUYER GSTIN :</strong> <br><span id="outBuyerGSTIN" class="dotted"></span></td>
             </tr>
         </table>
@@ -152,12 +135,12 @@
             <thead>
                 <tr>
                     <th>SL NO</th>
-                    <th>DESCRIPTION OF GOODS</th>
+                    <th>DESCRIPTION</th>
                     <th>HUID NO</th>
                     <th>PURITY</th>
                     <th>WEIGHT</th>
-                    <th>CGST (1.5%)</th>
-                    <th>SGST (1.5%)</th>
+                    <th>CGST(1.5%)</th>
+                    <th>SGST(1.5%)</th>
                     <th>MAKING</th>
                     <th>RATE</th>
                     <th>METAL VAL</th>
@@ -201,19 +184,16 @@
             </div>
         </div>
 
-        <div class="flexible-print-spacer" style="flex-grow: 1; min-height: 50px;"></div>
-       <div class="footer-section" style="margin-top: 10px;">
-    <div class="signature-container" style="display: flex; justify-content: space-between;">
-        <div>__________________________<br>CUSTOMER SIGNATURE</div>
-        <div>__________________________<br>AUTHORIZED SIGN WITH SEAL</div>
+        <div class="footer-section">
+            <div class="signature-container">
+                <div>__________________________<br>CUSTOMER SIGNATURE</div>
+                <div>__________________________<br>AUTHORIZED SIGN WITH SEAL</div>
+            </div>
+            <div class="thank-you-footer">
+                THANK YOU / VISIT AGAIN
+            </div>
+        </div>
     </div>
-    <div class="thank-you" style="text-align: center; margin-top: 5px;">
-        THANK YOU
-    </div>
-             <div class="visit-again" style="text-align: center; margin-top: 5px;">
-        VISIT AGAIN
-    </div>
-</div>
 
     <script>
         document.getElementById('invoice-form').addEventListener('submit', function(e) {
@@ -221,17 +201,16 @@
 
             // Inputs
             const suffix = document.getElementById('invoiceSuffix').value;
-            const weight = parseFloat(document.getElementById('itemWeight').value);
-            const rate = parseFloat(document.getElementById('itemRate').value);
-            const making = parseFloat(document.getElementById('itemMaking').value);
+            const weight = parseFloat(document.getElementById('itemWeight').value) || 0;
+            const rate = parseFloat(document.getElementById('itemRate').value) || 0;
+            const making = parseFloat(document.getElementById('itemMaking').value) || 0;
             const hallmark = parseFloat(document.getElementById('hallmarkCharges').value) || 0;
             const discount = parseFloat(document.getElementById('discount').value) || 0;
 
             // Math
             const metal = weight * rate;
-            const taxable = metal ;
-            const gst = taxable * 0.015;
-            const rowTotal = taxable + (gst * 2) + making ;
+            const gst = metal * 0.015;
+            const rowTotal = metal + (gst * 2) + making;
             const mGst = making * 0.05;
             const grandTotal = rowTotal + hallmark + mGst;
             const net = Math.round(grandTotal) - discount;
