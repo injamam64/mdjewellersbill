@@ -13,6 +13,7 @@
         .form-row { display: flex; gap: 10px; }
         .form-row div { flex: 1; }
         .primary-btn { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
+        .add-btn { width: 100%; padding: 10px; background: #3498db; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; margin-bottom: 10px; }
 
         /* --- SHARED HEADER STYLES (Screen & Print) --- */
         .header-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
@@ -30,19 +31,12 @@
         .dotted { border-bottom: 1px dotted #000; display: inline-block; min-width: 130px; }
         .items-table { width: 100%; border-collapse: collapse; margin-top: 15px; border: 1.5px solid #000; }
         .items-table th, .items-table td { border: 1px solid #000; padding: 5px; text-align: center; font-size: 8.5pt; }
-        .spacer-row td { height: 100px; border-top: none; } /* Reduced from 150px to save space */
+        .spacer-row td { height: 100px; border-top: none; }
         .summary-container { display: flex; justify-content: space-between; margin-top: 15px; }
         .amount-words-box { width: 55%; border: 1.5px solid #000; padding: 8px; background: #e0f2f1 !important; height: 50px !important; min-height: 40px; font-size: 9pt; }
         .totals-box { width: 40%; text-align: right; font-size: 10pt; line-height: 1.4; }
         .thick-line { border-bottom: 2px solid #000; margin: 4px 0; }
-        .terms-section {
-    width: 60%;               /* Keeps text on the left half */
-    font-size: 7.5pt;         /* Small enough to look like fine print */
-    line-height: 1.3;
-    margin-top: 15px;
-    margin-bottom: 5px;       /* Adds space before the signature line */
-    text-align: left;
-}
+        .terms-section { width: 60%; font-size: 7.5pt; line-height: 1.3; margin-top: 15px; margin-bottom: 5px; text-align: left; }
         .signature-container { display: flex; justify-content: space-between; margin-top: 25px; font-weight: bold; font-size: 9pt; }
         .thank-you-footer { text-align: center; margin-top: 20px; font-weight: bold; font-size: 11pt; }
 
@@ -85,6 +79,8 @@
                     <input type="number" id="itemRate" placeholder="Rate per gm">
                     <input type="number" id="itemMaking" placeholder="Making Charge">
                 </div>
+                <button type="button" class="add-btn" onclick="addItem()">+ ADD ITEM TO LIST</button>
+                <div id="item-count-status" style="font-size: 0.9em; color: #666;">Items added: 0</div>
             </fieldset>
             <fieldset>
                 <legend>Extras & Payment</legend>
@@ -155,22 +151,11 @@
                     <th>TOTAL</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td>1.</td>
-                    <td id="outDesc"></td>
-                    <td id="outHUID"></td>
-                    <td id="outPurity"></td>
-                    <td id="outWeight"></td>
-                    <td id="outCGST"></td>
-                    <td id="outSGST"></td>
-                    <td id="outMaking"></td>
-                    <td id="outRate"></td>
-                    <td id="outMetal"></td>
-                    <td id="outTotal"></td>
-                </tr>
+            <tbody id="bill-items-body">
+                </tbody>
+            <tfoot>
                 <tr class="spacer-row"><td colspan="11"></td></tr>
-            </tbody>
+            </tfoot>
         </table>
 
         <div class="summary-container">
@@ -192,17 +177,12 @@
             </div>
         </div>
 
-       <div class="totals-box">
-    <div class="thick-line"></div>
-    
-   
-</div>
         <div class="terms-section">
-    <strong>Terms & Conditions:</strong><br>
-    • Once sold or exchanged, no cash refund will be entertained.<br>
-    • Our Hallmark certified ornaments cannot be returned/refunded after sale.<br>
-    • Hallmark ornaments are exchanged at prevailing market rate.
-</div>
+            <strong>Terms & Conditions:</strong><br>
+            • Once sold or exchanged, no cash refund will be entertained.<br>
+            • Our Hallmark certified ornaments cannot be returned/refunded after sale.<br>
+            • Hallmark ornaments are exchanged at prevailing market rate.
+        </div>
         <div class="flexible-print-spacer" style="flex-grow: 1; min-height: 70px;"></div>
         <div class="footer-section">
             <div class="signature-container">
@@ -212,54 +192,92 @@
             <div class="thank-you-footer">
                 THANK YOU
             </div>
-           
         </div>
     </div>
 
     <script>
-        document.getElementById('invoice-form').addEventListener('submit', function(e) {
-            e.preventDefault();
+        let itemsList = [];
 
-            // Inputs
-            const suffix = document.getElementById('invoiceSuffix').value;
+        function addItem() {
+            const desc = document.getElementById('itemDesc').value;
             const weight = parseFloat(document.getElementById('itemWeight').value) || 0;
             const rate = parseFloat(document.getElementById('itemRate').value) || 0;
             const making = parseFloat(document.getElementById('itemMaking').value) || 0;
-            const hallmark = parseFloat(document.getElementById('hallmarkCharges').value) || 0;
-            const discount = parseFloat(document.getElementById('discount').value) || 0;
+            const huid = document.getElementById('itemHUID').value || "N/A";
+            const purity = document.getElementById('itemPurity').value;
 
-            // Math
+            if(!desc || weight <= 0) {
+                alert("Please enter description and weight");
+                return;
+            }
+
             const metal = weight * rate;
             const gst = metal * 0.015;
             const rowTotal = metal + (gst * 2) + making;
             const mGst = making * 0.05;
-            const grandTotal = rowTotal + hallmark + mGst;
-            const net = Math.round(grandTotal) - discount;
 
-            // Fill
-            document.getElementById('outInvoice').textContent = suffix;
+            itemsList.push({
+                desc, huid, purity, weight, rate, making, metal, gst, rowTotal, mGst
+            });
+
+            // Reset item fields
+            document.getElementById('itemDesc').value = '';
+            document.getElementById('itemHUID').value = '';
+            document.getElementById('itemWeight').value = '';
+            document.getElementById('itemMaking').value = '';
+            document.getElementById('item-count-status').textContent = "Items added: " + itemsList.length;
+        }
+
+        document.getElementById('invoice-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if(itemsList.length === 0) {
+                addItem(); // Add the current item if the list is empty
+            }
+
+            const hallmark = parseFloat(document.getElementById('hallmarkCharges').value) || 0;
+            const discount = parseFloat(document.getElementById('discount').value) || 0;
+
+            let totalRowSum = 0;
+            let totalMakingGstSum = 0;
+            const tableBody = document.getElementById('bill-items-body');
+            tableBody.innerHTML = '';
+
+            itemsList.forEach((item, index) => {
+                totalRowSum += item.rowTotal;
+                totalMakingGstSum += item.mGst;
+
+                const row = `<tr>
+                    <td>${index + 1}.</td>
+                    <td>${item.desc}</td>
+                    <td>${item.huid}</td>
+                    <td>${item.purity}</td>
+                    <td>${item.weight.toFixed(3)}</td>
+                    <td>${item.gst.toFixed(2)}</td>
+                    <td>${item.gst.toFixed(2)}</td>
+                    <td>${item.making.toFixed(2)}</td>
+                    <td>${item.rate.toFixed(2)}</td>
+                    <td>${item.metal.toFixed(2)}</td>
+                    <td>${item.rowTotal.toFixed(2)}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+
+            const preRoundGrand = totalRowSum + hallmark + totalMakingGstSum;
+            const grandTotalRounded = Math.round(preRoundGrand);
+            const net = grandTotalRounded - discount;
+
+            document.getElementById('outInvoice').textContent = document.getElementById('invoiceSuffix').value;
             document.getElementById('outBuyerName').textContent = document.getElementById('buyerName').value;
             document.getElementById('outBuyerAddress').textContent = document.getElementById('buyerAddress').value;
             document.getElementById('outBuyerGSTIN').textContent = document.getElementById('buyerGSTIN').value || "N/A";
             document.getElementById('outOrderDate').textContent = document.getElementById('orderDate').value;
             document.getElementById('outDeliveryDate').textContent = document.getElementById('deliveryDate').value;
-            
-            document.getElementById('outDesc').textContent = document.getElementById('itemDesc').value;
-            document.getElementById('outHUID').textContent = document.getElementById('itemHUID').value || "N/A";
-            document.getElementById('outPurity').textContent = document.getElementById('itemPurity').value;
-            document.getElementById('outWeight').textContent = weight.toFixed(3);
-            document.getElementById('outRate').textContent = rate.toFixed(2);
-            document.getElementById('outMaking').textContent = making.toFixed(2);
-            document.getElementById('outCGST').textContent = gst.toFixed(2);
-            document.getElementById('outSGST').textContent = gst.toFixed(2);
-            document.getElementById('outMetal').textContent = metal.toFixed(2);
-            document.getElementById('outTotal').textContent = rowTotal.toFixed(2);
 
-            document.getElementById('sumTotal').textContent = rowTotal.toFixed(2);
+            document.getElementById('sumTotal').textContent = totalRowSum.toFixed(2);
             document.getElementById('sumHallmark').textContent = hallmark.toFixed(2);
-            document.getElementById('sumMakingGST').textContent = mGst.toFixed(2);
-            document.getElementById('sumRound').textContent = (Math.round(grandTotal) - grandTotal).toFixed(2);
-            document.getElementById('sumGrand').textContent = Math.round(grandTotal).toFixed(2);
+            document.getElementById('sumMakingGST').textContent = totalMakingGstSum.toFixed(2);
+            document.getElementById('sumRound').textContent = (grandTotalRounded - preRoundGrand).toFixed(2);
+            document.getElementById('sumGrand').textContent = grandTotalRounded.toFixed(2);
             document.getElementById('sumDisc').textContent = discount.toFixed(2);
             document.getElementById('sumNet').textContent = net.toFixed(2);
             document.getElementById('outPayment').textContent = document.getElementById('paymentMethod').value;
