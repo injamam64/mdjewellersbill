@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>M.D. Jewellers Invoice</title>
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         /* --- SCREEN ONLY STYLES --- */
         body { font-family: 'Times New Roman', serif; margin: 0; padding: 0; background-color: #f4f7f6; }
@@ -12,10 +14,11 @@
         .no-print input, .no-print select { width: 100%; padding: 8px; margin: 5px 0 12px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         .form-row { display: flex; gap: 10px; }
         .form-row div { flex: 1; }
-        .primary-btn { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
+        .primary-btn { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; margin-bottom: 10px; }
         .add-btn { width: 100%; padding: 10px; background: #3498db; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; margin-bottom: 10px; }
+        .save-btn { width: 100%; padding: 15px; background: #8e44ad; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
 
-        /* --- SHARED HEADER STYLES (Screen & Print) --- */
+        /* --- SHARED HEADER STYLES --- */
         .header-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
         .header-logo { height: 50px; width: auto; display: block; margin: 0 auto; }
         .header-logo-cell { width: 15%; vertical-align: middle; }
@@ -31,19 +34,25 @@
         .dotted { border-bottom: 1px dotted #000; display: inline-block; min-width: 130px; }
         .items-table { width: 100%; border-collapse: collapse; margin-top: 15px; border: 1.5px solid #000; }
         .items-table th, .items-table td { border: 1px solid #000; padding: 5px; text-align: center; font-size: 8.5pt; }
-        .spacer-row td { height: 100px; border-top: none; }
+        .spacer-row td { height: 80px; border-top: none; }
+        
         .summary-container { display: flex; justify-content: space-between; margin-top: 15px; }
-        .amount-words-box { width: 55%; border: 1.5px solid #000; padding: 8px; background: #e0f2f1 !important; height: 50px !important; min-height: 40px; font-size: 9pt; }
+        .left-summary { width: 55%; display: flex; flex-direction: column; gap: 10px; }
+        .amount-words-box { border: 1.5px solid #000; padding: 8px; background: #e0f2f1 !important; min-height: 45px; font-size: 9pt; }
         .totals-box { width: 40%; text-align: right; font-size: 10pt; line-height: 1.4; }
+        
+        /* QR Code Container Styling */
+        #qrcode { margin-top: 5px; display: flex; align-items: center; justify-content: flex-start; }
+        #qrcode img { border: 1px solid #ccc; padding: 2px; }
+
         .thick-line { border-bottom: 2px solid #000; margin: 4px 0; }
-        .terms-section { width: 60%; font-size: 7.5pt; line-height: 1.3; margin-top: 15px; margin-bottom: 5px; text-align: left; }
+        .terms-section { width: 60%; font-size: 7.5pt; line-height: 1.3; margin-top: 10px; text-align: left; }
         .signature-container { display: flex; justify-content: space-between; margin-top: 25px; font-weight: bold; font-size: 9pt; }
         .thank-you-footer { text-align: center; margin-top: 20px; font-weight: bold; font-size: 11pt; }
 
         @media print {
             .no-print { display: none !important; }
             .bill-page { margin: 0; border: none; width: 100%; height: auto; }
-            html, body { background-color: #fff; }
             .jeweller-info, .amount-words-box { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
     </style>
@@ -86,6 +95,7 @@
                 <legend>Extras & Payment</legend>
                 <div class="form-row">
                     <input type="number" id="hallmarkCharges" placeholder="Hallmark Charges">
+                    <input type="number" id="cardCharge" placeholder="Card Charge">
                     <input type="number" id="discount" placeholder="Discount">
                 </div>
                 <label>Payment Method:</label>
@@ -95,11 +105,13 @@
                     <option value="CASH & UPI BOTH">CASH & UPI BOTH</option>
                 </select>
             </fieldset>
-            <button type="submit" class="primary-btn">GENERATE BILL</button>
+            <button type="submit" class="primary-btn">GENERATE BILL & QR</button>
+            <button type="button" class="save-btn" onclick="saveGstToSheet()">ADD TO SHEET</button>
         </form>
     </div>
 
     <div id="invoice-bill" class="bill-page">
+        <!-- Header -->
         <table class="header-table">
             <tr>
                 <td class="header-logo-cell"><img src="md-logo.png" class="header-logo" alt="MD Logo"></td>
@@ -125,7 +137,6 @@
         </table>
         
         <p style="margin: 10px 0 0 0; font-size:10pt;"><strong>INVOICE NO :</strong> MDJ/26/<span id="outInvoice"></span></p>
-        <p style="margin: 0; font-size:10pt;"><strong>PLACE OF SUPPLY :</strong> WEST BENGAL</p>
 
         <table class="buyer-table">
             <tr>
@@ -135,6 +146,7 @@
             </tr>
         </table>
 
+        <!-- Items -->
         <table class="items-table">
             <thead>
                 <tr>
@@ -151,21 +163,28 @@
                     <th>TOTAL</th>
                 </tr>
             </thead>
-            <tbody id="bill-items-body">
-                </tbody>
+            <tbody id="bill-items-body"></tbody>
             <tfoot>
                 <tr class="spacer-row"><td colspan="11"></td></tr>
             </tfoot>
         </table>
 
+        <!-- Summary & QR -->
         <div class="summary-container">
-            <div class="amount-words-box">
-                <strong>AMOUNT IN WORDS :</strong>
-                <div id="outWords" style="margin-top:5px; text-transform: uppercase;"></div>
+            <div class="left-summary">
+                <div class="amount-words-box">
+                    <strong>AMOUNT IN WORDS :</strong>
+                    <div id="outWords" style="margin-top:5px; text-transform: uppercase;"></div>
+                </div>
+                
+                <!-- QR CODE AREA (Before T&C) -->
+                <div id="qrcode"></div>
             </div>
+
             <div class="totals-box">
                 <p>TOTAL : ₹ <span id="sumTotal"></span></p>
                 <p>HALLMARK : ₹ <span id="sumHallmark"></span></p>
+                <p>CARD CHARGE : ₹ <span id="sumCardCharge"></span></p>
                 <p>MAKING GST(5%) : ₹ <span id="sumMakingGST"></span></p>
                 <p>ROUND OFF : <span id="sumRound"></span></p>
                 <div class="thick-line"></div>
@@ -183,20 +202,20 @@
             • Our Hallmark certified ornaments cannot be returned/refunded after sale.<br>
             • Hallmark ornaments are exchanged at prevailing market rate.
         </div>
-        <div class="flexible-print-spacer" style="flex-grow: 1; min-height: 70px;"></div>
-        <div class="footer-section">
-            <div class="signature-container">
-                <div>__________________________<br>CUSTOMER SIGNATURE</div>
-                <div>__________________________<br>AUTHORIZED SIGN WITH SEAL</div>
-            </div>
-            <div class="thank-you-footer">
-                THANK YOU
-            </div>
+
+        <div class="signature-container">
+            <div>__________________________<br>CUSTOMER SIGNATURE</div>
+            <div>__________________________<br>AUTHORIZED SIGN WITH SEAL</div>
         </div>
+        <div class="thank-you-footer">THANK YOU</div>
     </div>
 
     <script>
         let itemsList = [];
+        let qrcode = new QRCode(document.getElementById("qrcode"), {
+            width: 110,
+            height: 110
+        });
 
         function addItem() {
             const desc = document.getElementById('itemDesc').value;
@@ -216,11 +235,8 @@
             const rowTotal = metal + (gst * 2) + making;
             const mGst = making * 0.05;
 
-            itemsList.push({
-                desc, huid, purity, weight, rate, making, metal, gst, rowTotal, mGst
-            });
+            itemsList.push({ desc, huid, purity, weight, rate, making, metal, gst, rowTotal, mGst });
 
-            // Reset item fields
             document.getElementById('itemDesc').value = '';
             document.getElementById('itemHUID').value = '';
             document.getElementById('itemWeight').value = '';
@@ -230,21 +246,22 @@
 
         document.getElementById('invoice-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            if(itemsList.length === 0) {
-                addItem(); // Add the current item if the list is empty
-            }
+            if(itemsList.length === 0) { addItem(); }
 
             const hallmark = parseFloat(document.getElementById('hallmarkCharges').value) || 0;
+            const cardVal = parseFloat(document.getElementById('cardCharge').value) || 0;
             const discount = parseFloat(document.getElementById('discount').value) || 0;
 
             let totalRowSum = 0;
             let totalMakingGstSum = 0;
+            let qrItemsText = "";
             const tableBody = document.getElementById('bill-items-body');
             tableBody.innerHTML = '';
 
             itemsList.forEach((item, index) => {
                 totalRowSum += item.rowTotal;
                 totalMakingGstSum += item.mGst;
+                qrItemsText += `${index+1}.${item.desc}(HUID:${item.huid}) `;
 
                 const row = `<tr>
                     <td>${index + 1}.</td>
@@ -262,19 +279,20 @@
                 tableBody.innerHTML += row;
             });
 
-            const preRoundGrand = totalRowSum + hallmark + totalMakingGstSum;
+            const preRoundGrand = totalRowSum + hallmark + cardVal + totalMakingGstSum;
             const grandTotalRounded = Math.round(preRoundGrand);
             const net = grandTotalRounded - discount;
 
             document.getElementById('outInvoice').textContent = document.getElementById('invoiceSuffix').value;
             document.getElementById('outBuyerName').textContent = document.getElementById('buyerName').value;
             document.getElementById('outBuyerAddress').textContent = document.getElementById('buyerAddress').value;
-            document.getElementById('outBuyerGSTIN').textContent = document.getElementById('buyerGSTIN').value || "N/A";
+            document.getElementById('outBuyerGSTIN').textContent = document.getElementById('buyerGSTIN').value || "URD";
             document.getElementById('outOrderDate').textContent = document.getElementById('orderDate').value;
             document.getElementById('outDeliveryDate').textContent = document.getElementById('deliveryDate').value;
 
             document.getElementById('sumTotal').textContent = totalRowSum.toFixed(2);
             document.getElementById('sumHallmark').textContent = hallmark.toFixed(2);
+            document.getElementById('sumCardCharge').textContent = cardVal.toFixed(2);
             document.getElementById('sumMakingGST').textContent = totalMakingGstSum.toFixed(2);
             document.getElementById('sumRound').textContent = (grandTotalRounded - preRoundGrand).toFixed(2);
             document.getElementById('sumGrand').textContent = grandTotalRounded.toFixed(2);
@@ -283,8 +301,38 @@
             document.getElementById('outPayment').textContent = document.getElementById('paymentMethod').value;
             document.getElementById('outWords').textContent = numberToWords(net) + " ONLY";
 
-            setTimeout(() => { window.print(); }, 200);
+            // Generate QR Code with details
+            const qrData = `MDJ|Bill:${document.getElementById('invoiceSuffix').value}|Name:${document.getElementById('buyerName').value}|Add:${document.getElementById('buyerAddress').value}|Items:${qrItemsText}|Total:Rs.${grandTotalRounded}|Net:Rs.${net}`;
+            qrcode.makeCode(qrData);
+
+            setTimeout(() => { window.print(); }, 500);
         });
+
+        async function saveGstToSheet() {
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbySLTqmzqraFD8xbvYcJGMlht9wq5hn90XpaCwhtC8mejSrzP6RI1O53Srj390tTTo2/exec';
+            if(itemsList.length === 0) { alert("Add items first!"); return; }
+
+            const data = {
+                billNo: document.getElementById('invoiceSuffix').value,
+                date: document.getElementById('orderDate').value,
+                name: document.getElementById('buyerName').value,
+                gstin: document.getElementById('buyerGSTIN').value || "URD",
+                address: document.getElementById('buyerAddress').value,
+                metalType: itemsList[0]?.purity || "22K",
+                hsn: "7113",
+                netWt: itemsList.reduce((a, b) => a + b.weight, 0).toFixed(3),
+                taxable: document.getElementById('sumTotal').innerText, 
+                cgst: itemsList.reduce((a, b) => a + b.gst, 0).toFixed(2), 
+                sgst: itemsList.reduce((a, b) => a + b.gst, 0).toFixed(2),
+                total: document.getElementById('sumNet').innerText,
+                amtPaid: document.getElementById('sumNet').innerText,
+                paidVia: document.getElementById('paymentMethod').value
+            };
+
+            fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) })
+            .then(() => alert("Saved to Sheet!"))
+            .catch(err => alert("Error: " + err.message));
+        }
 
         function numberToWords(n) {
             const w = ["", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "ELEVEN", "TWELVE", "THIRTEEN", "FOURTEEN", "FIFTEEN", "SIXTEEN", "SEVENTEEN", "EIGHTEEN", "NINETEEN"];
