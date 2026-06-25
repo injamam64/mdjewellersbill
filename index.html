@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>M.D. Jewellers Invoice</title>
-    <!-- QR Code Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         /* --- SCREEN ONLY STYLES --- */
@@ -20,7 +19,7 @@
 
         /* --- SHARED HEADER STYLES --- */
         .header-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-        .header-logo { height: 50px; width: auto; display: block; margin: 0 auto; }
+        .header-logo { height: 48px; width: auto; display: block; margin: 0 auto; }
         .header-logo-cell { width: 15%; vertical-align: middle; }
         .header-text-cell { width: 70%; text-align: center; vertical-align: middle; }
         .jeweller-info { border: 2.2px solid #000; padding: 5px; background-color: #fcece8 !important; margin: 0 10px; text-align: center; }
@@ -34,26 +33,31 @@
         .dotted { border-bottom: 1px dotted #000; display: inline-block; min-width: 130px; }
         .items-table { width: 100%; border-collapse: collapse; margin-top: 15px; border: 1.5px solid #000; }
         .items-table th, .items-table td { border: 1px solid #000; padding: 5px; text-align: center; font-size: 8.5pt; }
-        .spacer-row td { height: 80px; border-top: none; }
+        .spacer-row td { height: 40px; border-top: none; }
         
         .summary-container { display: flex; justify-content: space-between; margin-top: 15px; }
         .left-summary { width: 55%; display: flex; flex-direction: column; gap: 10px; }
-        .amount-words-box { border: 1.5px solid #000; padding: 8px; background: #e0f2f1 !important; min-height: 45px; font-size: 9pt; }
+        .amount-words-box { border: 1.5px solid #000; padding: 8px; background: #e0f2f1 !important; height: auto !important; min-height: 45px; font-size: 9pt; }
         .totals-box { width: 40%; text-align: right; font-size: 10pt; line-height: 1.4; }
         
-        /* QR Code Container Styling */
+        /* Highlight Colors */
+        .total-amount-highlight { color: #002fbe !important; font-weight: bold; }
+        .net-receivable-highlight { color: #1e7e34 !important; font-weight: bold; }
+
         #qrcode { margin-top: 5px; display: flex; align-items: center; justify-content: flex-start; }
         #qrcode img { border: 1px solid #ccc; padding: 2px; }
 
         .thick-line { border-bottom: 2px solid #000; margin: 4px 0; }
         .terms-section { width: 60%; font-size: 7.5pt; line-height: 1.3; margin-top: 10px; text-align: left; }
-        .signature-container { display: flex; justify-content: space-between; margin-top: 25px; font-weight: bold; font-size: 9pt; }
+        .signature-container { display: flex; justify-content: space-between; margin-top: 60px; font-weight: bold; font-size: 9pt; }
         .thank-you-footer { text-align: center; margin-top: 20px; font-weight: bold; font-size: 11pt; }
 
         @media print {
             .no-print { display: none !important; }
-            .bill-page { margin: 0; border: none; width: 100%; height: auto; }
+            html, body { height: auto; margin: 0 !important; padding: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .bill-page { border: none; width: 100%; height: auto; display: block; }
             .jeweller-info, .amount-words-box { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .footer-section { position: relative; margin-top: 15px; padding-top: 5px; page-break-inside: avoid; }
         }
     </style>
 </head>
@@ -74,7 +78,6 @@
                 <legend>Buyer Information</legend>
                 <input type="text" id="buyerName" placeholder="Buyer Name">
                 <input type="text" id="buyerAddress" placeholder="Address">
-                <input type="text" id="buyerGSTIN" placeholder="GSTIN (If any)">
             </fieldset>
             <fieldset>
                 <legend>Item Details</legend>
@@ -98,12 +101,20 @@
                     <input type="number" id="cardCharge" placeholder="Card Charge">
                     <input type="number" id="discount" placeholder="Discount">
                 </div>
-                <label>Payment Method:</label>
-                <select id="paymentMethod">
-                    <option value="CASH">CASH</option>
-                    <option value="UPI">UPI</option>
-                    <option value="CASH & UPI BOTH">CASH & UPI BOTH</option>
-                </select>
+                <div class="form-row">
+                    <div>
+                        <label>Net Amount Paid:</label>
+                        <input type="number" id="amtPaid" placeholder="Amount Paid By Customer">
+                    </div>
+                    <div>
+                        <label>Payment Method:</label>
+                        <select id="paymentMethod">
+                            <option value="CASH">CASH</option>
+                            <option value="UPI">UPI</option>
+                            <option value="CASH & UPI BOTH">CASH & UPI BOTH</option>
+                        </select>
+                    </div>
+                </div>
             </fieldset>
             <button type="submit" class="primary-btn">GENERATE BILL & QR</button>
             <button type="button" class="save-btn" onclick="saveGstToSheet()">ADD TO SHEET</button>
@@ -111,7 +122,6 @@
     </div>
 
     <div id="invoice-bill" class="bill-page">
-        <!-- Header -->
         <table class="header-table">
             <tr>
                 <td class="header-logo-cell"><img src="md-logo.png" class="header-logo" alt="MD Logo"></td>
@@ -134,24 +144,21 @@
                 <td><strong>ADDRESS :</strong> ILLAMBAZAR, DUBRAJPUR ROAD</td>
                 <td align="right"><strong>DELIVERY DATE :</strong> <span id="outDeliveryDate"></span></td>
             </tr>
-               <!-- Added the Mobile No. row below -->
-    <tr>
-        <td><strong>MOBILE NO : 8642067952</strong> <span id="outMobileNo"></span></td>
-        <td></td> <!-- Empty cell to maintain table alignment -->
-    </tr>
+            <tr>
+                <td><strong>MOBILE NO : 8642067952</strong> <span id="outMobileNo"></span></td>
+                <td></td>
+            </tr>
         </table>
         
         <p style="margin: 10px 0 0 0; font-size:10pt;"><strong>INVOICE NO :</strong> MDJ/26/<span id="outInvoice"></span></p>
 
         <table class="buyer-table">
             <tr>
-                <td><strong>BUYER NAME :</strong> <br><span id="outBuyerName" class="dotted"></span></td>
-                <td><strong>BUYER ADDRESS :</strong> <br><span id="outBuyerAddress" class="dotted"></span></td>
-                <td><strong>BUYER GSTIN(IF ANY) :</strong> <br><span id="outBuyerGSTIN" class="dotted"></span></td>
+                <td width="50%"><strong>BUYER NAME :</strong> <br><span id="outBuyerName" class="dotted"></span></td>
+                <td width="50%"><strong>BUYER ADDRESS :</strong> <br><span id="outBuyerAddress" class="dotted"></span></td>
             </tr>
         </table>
 
-        <!-- Items -->
         <table class="items-table">
             <thead>
                 <tr>
@@ -174,15 +181,12 @@
             </tfoot>
         </table>
 
-        <!-- Summary & QR -->
         <div class="summary-container">
             <div class="left-summary">
                 <div class="amount-words-box">
                     <strong>AMOUNT IN WORDS :</strong>
                     <div id="outWords" style="margin-top:5px; text-transform: uppercase;"></div>
                 </div>
-                
-                <!-- QR CODE AREA (Before T&C) -->
                 <div id="qrcode"></div>
             </div>
 
@@ -193,26 +197,30 @@
                 <p>MAKING GST(5%) : ₹ <span id="sumMakingGST"></span></p>
                 <p>ROUND OFF : <span id="sumRound"></span></p>
                 <div class="thick-line"></div>
-                <p><strong>TOTAL AMOUNT : ₹ <span id="sumGrand"></span></strong></p>
+                <p class="total-amount-highlight">TOTAL AMOUNT : ₹ <span id="sumGrand"></span></p>
                 <div class="thick-line"></div>
                 <p>DISCOUNT : ₹ <span id="sumDisc"></span></p>
-                <p><strong>NET RECEIVABLE : ₹ <span id="sumNet"></span></strong></p>
+                <p class="net-receivable-highlight">NET RECEIVABLE : ₹ <span id="sumNet"></span></p>
+                <p><strong>AMOUNT PAID : ₹ <span id="sumPaid"></span></strong></p>
+                <div class="thick-line"></div>
                 <p><strong>PAID BY : </strong> <span id="outPayment" style="text-decoration: underline"></span></p>
             </div>
         </div>
 
-        <div class="terms-section">
-            <strong>Terms & Conditions:</strong><br>
-            • Once sold or exchanged, no cash refund will be entertained.<br>
-            • Our Hallmark certified ornaments cannot be returned/refunded after sale.<br>
-            • Hallmark ornaments are exchanged at prevailing market rate.
-        </div>
+        <div class="footer-section">
+            <div class="terms-section">
+                <strong>Terms & Conditions:</strong><br>
+                • Once sold or exchanged, no cash refund will be entertained.<br>
+                • Our Hallmark certified ornaments cannot be returned/refunded after sale.<br>
+                • Hallmark ornaments are exchanged at prevailing market rate.
+            </div>
 
-        <div class="signature-container">
-            <div>__________________________<br>CUSTOMER SIGNATURE</div>
-            <div>__________________________<br>AUTHORIZED SIGN WITH SEAL</div>
+            <div class="signature-container">
+                <div>__________________________<br>CUSTOMER SIGNATURE</div>
+                <div>__________________________<br>AUTHORIZED SIGN WITH SEAL</div>
+            </div>
+            <div class="thank-you-footer">THANK YOU</div>
         </div>
-        <div class="thank-you-footer">THANK YOU</div>
     </div>
 
     <script>
@@ -256,6 +264,7 @@
             const hallmark = parseFloat(document.getElementById('hallmarkCharges').value) || 0;
             const cardVal = parseFloat(document.getElementById('cardCharge').value) || 0;
             const discount = parseFloat(document.getElementById('discount').value) || 0;
+            const actualPaid = parseFloat(document.getElementById('amtPaid').value) || 0;
 
             let totalRowSum = 0;
             let totalMakingGstSum = 0;
@@ -287,11 +296,11 @@
             const preRoundGrand = totalRowSum + hallmark + cardVal + totalMakingGstSum;
             const grandTotalRounded = Math.round(preRoundGrand);
             const net = grandTotalRounded - discount;
+            const customerPaid = actualPaid > 0 ? actualPaid : net; 
 
             document.getElementById('outInvoice').textContent = document.getElementById('invoiceSuffix').value;
             document.getElementById('outBuyerName').textContent = document.getElementById('buyerName').value;
             document.getElementById('outBuyerAddress').textContent = document.getElementById('buyerAddress').value;
-            document.getElementById('outBuyerGSTIN').textContent = document.getElementById('buyerGSTIN').value || "URD";
             document.getElementById('outOrderDate').textContent = document.getElementById('orderDate').value;
             document.getElementById('outDeliveryDate').textContent = document.getElementById('deliveryDate').value;
 
@@ -303,11 +312,16 @@
             document.getElementById('sumGrand').textContent = grandTotalRounded.toFixed(2);
             document.getElementById('sumDisc').textContent = discount.toFixed(2);
             document.getElementById('sumNet').textContent = net.toFixed(2);
+            document.getElementById('sumPaid').textContent = customerPaid.toFixed(2);
             document.getElementById('outPayment').textContent = document.getElementById('paymentMethod').value;
             document.getElementById('outWords').textContent = numberToWords(net) + " ONLY";
 
-            // Generate QR Code with details
-            const qrData = `MDJ|Bill:${document.getElementById('invoiceSuffix').value}|Name:${document.getElementById('buyerName').value}|Add:${document.getElementById('buyerAddress').value}|Items:${qrItemsText}|Total:Rs.${grandTotalRounded}|Net:Rs.${net}`;
+            // Update form with default value if left blank
+            if(!document.getElementById('amtPaid').value) {
+                document.getElementById('amtPaid').value = net;
+            }
+
+            const qrData = `MDJ|Bill:${document.getElementById('invoiceSuffix').value}|Name:${document.getElementById('buyerName').value}|Add:${document.getElementById('buyerAddress').value}|Items:${qrItemsText}|Total:Rs.${grandTotalRounded}|Net:Rs.${net}|Paid:Rs.${customerPaid}`;
             qrcode.makeCode(qrData);
 
             setTimeout(() => { window.print(); }, 500);
@@ -321,7 +335,7 @@
                 billNo: document.getElementById('invoiceSuffix').value,
                 date: document.getElementById('orderDate').value,
                 name: document.getElementById('buyerName').value,
-                gstin: document.getElementById('buyerGSTIN').value || "URD",
+                gstin: "URD",
                 address: document.getElementById('buyerAddress').value,
                 metalType: itemsList[0]?.purity || "22K",
                 hsn: "7113",
@@ -329,8 +343,17 @@
                 taxable: document.getElementById('sumTotal').innerText, 
                 cgst: itemsList.reduce((a, b) => a + b.gst, 0).toFixed(2), 
                 sgst: itemsList.reduce((a, b) => a + b.gst, 0).toFixed(2),
+                
+                // Added missing financial parameters
+                metalValue: itemsList.reduce((a, b) => a + b.metal, 0).toFixed(2),
+                hallmarkCharges: parseFloat(document.getElementById('hallmarkCharges').value) || 0,
+                cardCharge: parseFloat(document.getElementById('cardCharge').value) || 0,
+                makingGST: document.getElementById('sumMakingGST').innerText,
+                roundOff: document.getElementById('sumRound').innerText,
+                discount: parseFloat(document.getElementById('discount').value) || 0,
+                
                 total: document.getElementById('sumNet').innerText,
-                amtPaid: document.getElementById('sumNet').innerText,
+                amtPaid: document.getElementById('amtPaid').value || document.getElementById('sumNet').innerText,
                 paidVia: document.getElementById('paymentMethod').value
             };
 
